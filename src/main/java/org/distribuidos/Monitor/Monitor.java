@@ -9,6 +9,8 @@ import java.net.Socket;
 
 import org.zeromq.ZMQ;
 
+import org.zeromq.ZMQ;
+
 public class Monitor {
     public static void main(String[] args) {
         String sensorType = args[0];
@@ -16,8 +18,8 @@ public class Monitor {
         try (ZMQ.Context context = ZMQ.context(1);
              ZMQ.Socket subscriber = context.socket(ZMQ.SUB)) {
 
-            // Conéctate al canal de suscripción
-            subscriber.connect("tcp://localhost:5556");
+            // Cambia la conexión al canal de suscripción para que sea la dirección IP de la computadora que ejecuta el programa 'Sensor'.
+            subscriber.connect("tcp:// 192.168.0.10:5556");
             subscriber.subscribe(sensorType.getBytes());
 
             while (true) {

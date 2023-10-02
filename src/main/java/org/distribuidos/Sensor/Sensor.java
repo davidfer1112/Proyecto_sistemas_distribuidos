@@ -19,7 +19,7 @@ public class Sensor {
         try (ZMQ.Context context = ZMQ.context(1);
              ZMQ.Socket publisher = context.socket(ZMQ.PUB)) {
 
-            // Conéctate al canal de publicación
+            // Cambia la conexión al canal de publicación para que sea una dirección IP accesible en tu red.
             publisher.bind("tcp://*:5556");
 
             while (true) {
