@@ -19,7 +19,7 @@ public class Monitor {
              ZMQ.Socket subscriber = context.socket(ZMQ.SUB)) {
 
             // Cambia la conexión al canal de suscripción para que sea la dirección IP de la computadora que ejecuta el programa 'Sensor'.
-            subscriber.connect("tcp://DESKTOP-D9S9MO9:5556");
+            subscriber.connect("tcp://192.168.0.10:5556");
             subscriber.subscribe(sensorType.getBytes());
 
             while (true) {
