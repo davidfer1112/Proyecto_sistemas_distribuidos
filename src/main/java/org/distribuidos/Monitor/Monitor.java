@@ -15,6 +15,25 @@ public class Monitor {
              Socket socket = serverSocket.accept();
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
+            // Obtener el texto del primer argumento
+            String textoArgumento = "";
+            if (args.length > 0) {
+                textoArgumento = args[0];
+            }
+
+            // Imprimir el saludo con el primer argumento
+            System.out.println("Hola " + textoArgumento);
+
+            // Obtener el segundo argumento como número
+            int numeroArgumento = 0;
+            if (args.length > 1) {
+                numeroArgumento = Integer.parseInt(args[1]);
+            }
+
+            // Sumar el segundo argumento con 10 y mostrar el resultado
+            int resultado = numeroArgumento + 10;
+            System.out.println("El resultado de sumar " + numeroArgumento + " con 10 es: " + resultado);
+
             while (true) {
                 // Recibir el mensaje del sensor
                 Mensaje mensaje = (Mensaje) in.readObject();
