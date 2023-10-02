@@ -7,41 +7,27 @@ import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.zeromq.ZMQ;
+
 public class Monitor {
     public static void main(String[] args) {
-        int monitorPort = 12345; // Mismo puerto que el sensor
+        String sensorType = args[0];
 
-        try (ServerSocket serverSocket = new ServerSocket(monitorPort);
-             Socket socket = serverSocket.accept();
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+        try (ZMQ.Context context = ZMQ.context(1);
+             ZMQ.Socket subscriber = context.socket(ZMQ.SUB)) {
 
-            // Obtener el texto del primer argumento
-            String textoArgumento = "";
-            if (args.length > 0) {
-                textoArgumento = args[0];
-            }
-
-            // Imprimir el saludo con el primer argumento
-            System.out.println("Hola " + textoArgumento);
-
-            // Obtener el segundo argumento como número
-            int numeroArgumento = 0;
-            if (args.length > 1) {
-                numeroArgumento = Integer.parseInt(args[1]);
-            }
-
-            // Sumar el segundo argumento con 10 y mostrar el resultado
-            int resultado = numeroArgumento + 10;
-            System.out.println("El resultado de sumar " + numeroArgumento + " con 10 es: " + resultado);
+            // Conéctate al canal de suscripción
+            subscriber.connect("tcp://localhost:5556");
+            subscriber.subscribe(sensorType.getBytes());
 
             while (true) {
-                // Recibir el mensaje del sensor
-                Mensaje mensaje = (Mensaje) in.readObject();
+                // Recibe el mensaje de saludo del canal de suscripción
+                String message = subscriber.recvStr();
+                System.out.println("Received message: " + message);
 
-                // Mostrar el mensaje por pantalla
-                System.out.println("Medida: " + mensaje.getMedida() + " Hora: " + mensaje.getHora());
+                // Implementa la lógica para validar y almacenar la medición
+                // ...
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
