@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
 
   <name>Proyecto_sistemas_distribuidos</name>
-  <url>http://maven.apache.org</url>
+  <url>https://maven.apache.org</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,4 +30,6 @@
     </dependency>
 
   </dependencies>
+
+
 </project>
