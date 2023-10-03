@@ -1,3 +1,0 @@
-0.6 Valores correctos
-0.3 Valores fuera del rango
-0.1 Errores
