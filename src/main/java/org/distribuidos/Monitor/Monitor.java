@@ -1,7 +1,6 @@
 package org.distribuidos.Monitor;
 
 
-import org.distribuidos.Mensaje.Mensaje;
 
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
