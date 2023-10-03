@@ -119,7 +119,23 @@ public class Sensor {
                         value = 0;
                     }
                     unidad = " Mg/L";
-                } else {
+                }else if (sensorType.equalsIgnoreCase("ph")) {
+                    // Caso para el sensor de pH
+                    if (selectedMessageType.getType().equalsIgnoreCase("Correctos")) {
+                        // Valor aleatorio entre 6 y 8 para "Correctos"
+                        value = (int) (6 + Math.round(new Random().nextDouble() * (8 - 6)));
+                    } else if (selectedMessageType.getType().equalsIgnoreCase("FueraDeRango")) {
+                        // Valor positivo entre 0 y 9 para "FueraDeRango"
+                        value = (int) Math.round(new Random().nextDouble() * 9);
+                    } else if (selectedMessageType.getType().equalsIgnoreCase("Errores")) {
+                        // Valor negativo entre -9 y 0 para "Errores"
+                        value = (int) Math.round(-9 + new Random().nextDouble() * 9);
+                    } else {
+                        // Tipo desconocido, asigna un valor por defecto
+                        value = 0;
+                    }
+                    unidad = "";
+                }else {
                     // Tipo de sensor desconocido
                     System.out.println("Tipo de sensor desconocido: " + sensorType);
                     return;
@@ -127,7 +143,7 @@ public class Sensor {
                 // Forma el mensaje final
 
 
-                String message = sensorType + " Received message: Hola, ¿cómo estás? Tipo: " + selectedMessageType.getType() + " " + value + unidad;
+                String message = sensorType + " de tipo: " + selectedMessageType.getType() + " con valor: " + value + unidad;
 
                 // Envía el mensaje
                 publisher.send(message);

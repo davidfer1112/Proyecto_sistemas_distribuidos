@@ -25,7 +25,7 @@ public class Monitor {
             while (true) {
                 // Recibe el mensaje de saludo del canal de suscripción
                 String message = subscriber.recvStr();
-                System.out.println("Received message: " + message);
+                System.out.println("Mensaje: " + message);
 
                 // Implementa la lógica para validar y almacenar la medición
                 // ...
