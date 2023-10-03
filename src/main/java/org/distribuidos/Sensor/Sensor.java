@@ -76,10 +76,31 @@ public class Sensor {
 
             while (true) {
                 // Selecciona un tipo de mensaje aleatorio basado en la probabilidad
-                String selectedType = selectMessageType(messageTypes);
+                MessageType selectedMessageType = selectMessageType(messageTypes);
 
-                // Envía el mensaje acompañado por el tipo
-                publisher.send(sensorType + " Hola, ¿cómo estás? Tipo: " + selectedType);
+                // Genera un valor según el tipo de mensaje y redondea a entero
+                int value;
+                if (selectedMessageType.getType().equalsIgnoreCase("Correctos")) {
+                    // Valor aleatorio entre 68 y 89 para "Correctos"
+                    value = (int) Math.round(68 + new Random().nextDouble() * (89 - 68));
+                } else if (selectedMessageType.getType().equalsIgnoreCase("FueraDeRango")) {
+                    // Valor positivo que no esté en el rango (68, 89) para "FueraDeRango"
+                    do {
+                        value = (int) Math.round(new Random().nextDouble() * 100); // Puedes ajustar el rango según tus necesidades
+                    } while (value >= 68 && value <= 89);
+                } else if (selectedMessageType.getType().equalsIgnoreCase("Errores")) {
+                    // Valor negativo para "Errores"
+                    value = (int) Math.round(-1 * new Random().nextDouble() * 100); // Puedes ajustar el rango según tus necesidades
+                } else {
+                    // Tipo desconocido, asigna un valor por defecto
+                    value = 0;
+                }
+
+                // Forma el mensaje final
+                String message = sensorType + " Hola, ¿cómo estás? Tipo: " + selectedMessageType.getType() + " " + value + " °F";
+
+                // Envía el mensaje
+                publisher.send(message);
 
                 // Espera antes de enviar el siguiente mensaje
                 Thread.sleep(sendInterval);
@@ -90,19 +111,19 @@ public class Sensor {
     }
 
     // Método para seleccionar un tipo de mensaje aleatorio basado en la probabilidad
-    private static String selectMessageType(List<MessageType> messageTypes) {
+    private static MessageType selectMessageType(List<MessageType> messageTypes) {
         double randomValue = new Random().nextDouble();
         double cumulativeProbability = 0.0;
 
         for (MessageType messageType : messageTypes) {
             cumulativeProbability += messageType.getProbability();
             if (randomValue < cumulativeProbability) {
-                return messageType.getType();
+                return messageType;
             }
         }
 
         // En caso de errores o si no se seleccionó ningún tipo
-        return "Desconocido";
+        return new MessageType("Desconocido", 0.0);
     }
 
     // Clase para representar un tipo de mensaje y su probabilidad
