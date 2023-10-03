@@ -7,6 +7,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class Sensor {
     public static void main(String[] args) {
@@ -36,33 +39,26 @@ public class Sensor {
             return; // Sale del programa si el segundo argumento no es un entero válido
         }
 
-        // Verifica que el archivo de configuración exista
-        File configFile = new File(configFileName);
-        if (!configFile.exists()) {
-            System.out.println("No se encontró el archivo de configuración: " + configFileName);
-            return; // Sale del programa si el archivo de configuración no existe
-        }
-
-
+        List<MessageType> messageTypes = new ArrayList<>();
 
         // Lee el contenido del archivo de configuración
-        try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File(configFileName)))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 // Divide la línea en partes usando espacio como separador
                 String[] parts = line.split(" ");
                 if (parts.length == 2) {
-                    double value;
+                    double probability;
                     try {
                         // Intenta convertir la primera parte a un valor double
-                        value = Double.parseDouble(parts[0]);
+                        probability = Double.parseDouble(parts[0]);
                     } catch (NumberFormatException e) {
-                        System.out.println("Error al convertir el valor a un número en la línea: " + line);
+                        System.out.println("Error al convertir la probabilidad a un número en la línea: " + line);
                         continue; // Salta a la siguiente línea si hay un error
                     }
 
-                    // Muestra el valor y el tipo por consola
-                    System.out.println("Valor: " + value + ", Tipo: " + parts[1]);
+                    // Añade el tipo de mensaje y su probabilidad a la lista
+                    messageTypes.add(new MessageType(parts[1], probability));
                 } else {
                     System.out.println("Formato incorrecto en la línea: " + line);
                 }
@@ -79,14 +75,52 @@ public class Sensor {
             publisher.bind("tcp://*:5556");
 
             while (true) {
-                // Envía el mensaje de saludo
-                publisher.send(sensorType + " Hola, ¿cómo estás?");
+                // Selecciona un tipo de mensaje aleatorio basado en la probabilidad
+                String selectedType = selectMessageType(messageTypes);
+
+                // Envía el mensaje acompañado por el tipo
+                publisher.send(sensorType + " Hola, ¿cómo estás? Tipo: " + selectedType);
 
                 // Espera antes de enviar el siguiente mensaje
                 Thread.sleep(sendInterval);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    // Método para seleccionar un tipo de mensaje aleatorio basado en la probabilidad
+    private static String selectMessageType(List<MessageType> messageTypes) {
+        double randomValue = new Random().nextDouble();
+        double cumulativeProbability = 0.0;
+
+        for (MessageType messageType : messageTypes) {
+            cumulativeProbability += messageType.getProbability();
+            if (randomValue < cumulativeProbability) {
+                return messageType.getType();
+            }
+        }
+
+        // En caso de errores o si no se seleccionó ningún tipo
+        return "Desconocido";
+    }
+
+    // Clase para representar un tipo de mensaje y su probabilidad
+    private static class MessageType {
+        private String type;
+        private double probability;
+
+        public MessageType(String type, double probability) {
+            this.type = type;
+            this.probability = probability;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public double getProbability() {
+            return probability;
         }
     }
 }
