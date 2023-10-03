@@ -22,6 +22,7 @@ public class Sensor {
         String sensorType = args[0];
         int sendInterval;
         String configFileName = args[2];
+        String unidad = "";
 
         // Verifica que el tipo de sensor sea temperatura, oxigeno o PH
         if (!sensorType.equalsIgnoreCase("temperatura") &&
@@ -74,30 +75,59 @@ public class Sensor {
             // Cambia la conexión al canal de publicación para que sea una dirección IP accesible en tu red.
             publisher.bind("tcp://*:5556");
 
+
+
             while (true) {
                 // Selecciona un tipo de mensaje aleatorio basado en la probabilidad
                 MessageType selectedMessageType = selectMessageType(messageTypes);
 
                 // Genera un valor según el tipo de mensaje y redondea a entero
                 int value;
-                if (selectedMessageType.getType().equalsIgnoreCase("Correctos")) {
-                    // Valor aleatorio entre 68 y 89 para "Correctos"
-                    value = (int) Math.round(68 + new Random().nextDouble() * (89 - 68));
-                } else if (selectedMessageType.getType().equalsIgnoreCase("FueraDeRango")) {
-                    // Valor positivo que no esté en el rango (68, 89) para "FueraDeRango"
-                    do {
-                        value = (int) Math.round(new Random().nextDouble() * 100); // Puedes ajustar el rango según tus necesidades
-                    } while (value >= 68 && value <= 89);
-                } else if (selectedMessageType.getType().equalsIgnoreCase("Errores")) {
-                    // Valor negativo para "Errores"
-                    value = (int) Math.round(-1 * new Random().nextDouble() * 100); // Puedes ajustar el rango según tus necesidades
+                if (sensorType.equalsIgnoreCase("temperatura")) {
+                    // Código existente para el sensor de temperatura
+                    if (selectedMessageType.getType().equalsIgnoreCase("Correctos")) {
+                        // Valor aleatorio entre 68 y 89 para "Correctos"
+                        value = (int) Math.round(68 + new Random().nextDouble() * (89 - 68));
+                    } else if (selectedMessageType.getType().equalsIgnoreCase("FueraDeRango")) {
+                        // Valor positivo que no esté en el rango (68, 89) para "FueraDeRango"
+                        do {
+                            value = (int) Math.round(new Random().nextDouble() * 100); // Puedes ajustar el rango según tus necesidades
+                        } while (value >= 68 && value <= 89);
+                    } else if (selectedMessageType.getType().equalsIgnoreCase("Errores")) {
+                        // Valor negativo para "Errores"
+                        value = (int) Math.round(-1 * new Random().nextDouble() * 100); // Puedes ajustar el rango según tus necesidades
+                    } else {
+                        // Tipo desconocido, asigna un valor por defecto
+                        value = 0;
+                    }
+                    unidad = " °F";
+                } else if (sensorType.equalsIgnoreCase("oxigeno")) {
+                    // Caso para el sensor de oxígeno
+                    if (selectedMessageType.getType().equalsIgnoreCase("Correctos")) {
+                        // Valor aleatorio entre 2 y 11 para "Correctos"
+                        value = (int) Math.round(2 + new Random().nextDouble() * (11 - 2));
+                    } else if (selectedMessageType.getType().equalsIgnoreCase("FueraDeRango")) {
+                        // Valor positivo que no esté en el rango (2, 11) para "FueraDeRango"
+                        do {
+                            value = (int) Math.round(new Random().nextDouble() * 100); // Puedes ajustar el rango según tus necesidades
+                        } while (value >= 2 && value <= 11);
+                    } else if (selectedMessageType.getType().equalsIgnoreCase("Errores")) {
+                        // Valor negativo para "Errores"
+                        value = (int) Math.round(-1 * new Random().nextDouble() * 100); // Puedes ajustar el rango según tus necesidades
+                    } else {
+                        // Tipo desconocido, asigna un valor por defecto
+                        value = 0;
+                    }
+                    unidad = " Mg/L";
                 } else {
-                    // Tipo desconocido, asigna un valor por defecto
-                    value = 0;
+                    // Tipo de sensor desconocido
+                    System.out.println("Tipo de sensor desconocido: " + sensorType);
+                    return;
                 }
-
                 // Forma el mensaje final
-                String message = sensorType + " Hola, ¿cómo estás? Tipo: " + selectedMessageType.getType() + " " + value + " °F";
+
+
+                String message = sensorType + " Received message: Hola, ¿cómo estás? Tipo: " + selectedMessageType.getType() + " " + value + unidad;
 
                 // Envía el mensaje
                 publisher.send(message);
