@@ -10,6 +10,8 @@ import org.zeromq.ZMQ;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.zeromq.ZMQ;
 
@@ -34,8 +36,13 @@ public class Monitor {
                 while (true) {
                     // Recibe el mensaje de saludo del canal de suscripción
                     String message = subscriber.recvStr();
-                    System.out.println("Mensaje: " + message);
+                    Date date = new Date();
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                    String dateString = dateFormat.format(date);
 
+                    System.out.println("["+dateString+"]"+"Mensaje: " + message);
+
+                    message = "["+dateString+"]"+ message;
                     // Escribe el mensaje en el archivo
                     writer.write(message);
                     writer.newLine(); // Agrega una nueva línea para separar los mensajes

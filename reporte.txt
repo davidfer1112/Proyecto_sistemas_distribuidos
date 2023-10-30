@@ -1,4 +1,2 @@
-ph de tipo: FueraDeRango con valor: 8
-ph de tipo: Correctos con valor: 7
-ph de tipo: FueraDeRango con valor: 9
-ph de tipo: Correctos con valor: 6
+[30-10-2023 17:57:33]ph de tipo: Errores con valor: -2
+[30-10-2023 17:57:38]ph de tipo: FueraDeRango con valor: 2
