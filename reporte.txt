@@ -1,0 +1,4 @@
+ph de tipo: FueraDeRango con valor: 8
+ph de tipo: Correctos con valor: 7
+ph de tipo: FueraDeRango con valor: 9
+ph de tipo: Correctos con valor: 6
