@@ -2,36 +2,32 @@ package org.distribuidos.sitemaCalidad;
 
 import org.zeromq.ZMQ;
 
+import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class SistemaCalidad {
     public static void main(String[] args) {
+        // Obtén el ID del proceso (PID) del Sistema de Calidad
+        String processId = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+
         try (ZMQ.Context context = ZMQ.context(1);
              ZMQ.Socket monitorSubscriber = context.socket(ZMQ.SUB)) {
 
-            // Cambia la conexión al canal de publicación del Monitor
-            monitorSubscriber.connect("tcp://192.168.0.12:5557"); // Ajusta la dirección y el puerto según el Monitor
+            monitorSubscriber.connect("tcp://192.168.0.12:5557");
             monitorSubscriber.subscribe("".getBytes());
 
             while (true) {
-                // Recibe mensajes del Monitor
                 String monitorMessage = monitorSubscriber.recvStr();
                 Date date = new Date();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
                 String dateString = dateFormat.format(date);
 
-                // Procesa el mensaje recibido (puedes personalizar esto según tus necesidades)
-                processMonitorMessage(dateString, monitorMessage);
+                // Modifica el formato del mensaje del Sistema de Calidad
+                System.out.println(monitorMessage);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private static void processMonitorMessage(String dateString, String monitorMessage) {
-        // Analiza el mensaje del Monitor y realiza las acciones necesarias
-        System.out.println("[" + dateString + "] " + monitorMessage);
-        // Puedes agregar lógica adicional aquí, como enviar notificaciones, generar informes, etc.
     }
 }

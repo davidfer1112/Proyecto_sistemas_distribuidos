@@ -3,6 +3,7 @@ package org.distribuidos.Monitor;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -17,42 +18,40 @@ public class Monitor {
 
         String sensorType = args[0];
 
+        // Obtén el ID del proceso (PID)
+        String processId = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+
         try (ZMQ.Context context = ZMQ.context(1);
              ZMQ.Socket subscriber = context.socket(ZMQ.SUB);
              ZMQ.Socket systemQualityPublisher = context.socket(ZMQ.PUB)) {
 
-            // Cambia la conexión al canal de suscripción para que sea la dirección IP de la computadora que ejecuta el programa 'Sensor'.
             subscriber.connect("tcp://192.168.0.12:5556");
             subscriber.subscribe(sensorType.getBytes());
 
-            // Conexión al canal de publicación del Sistema de Calidad
             systemQualityPublisher.bind("tcp://*:5557");
 
             while (true) {
-                // Recibe el mensaje del canal de suscripción
                 String message = subscriber.recvStr();
                 Date date = new Date();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
                 String dateString = dateFormat.format(date);
 
-                System.out.println("[" + dateString + "] Mensaje: " + message);
+                System.out.println("[" + dateString + "] [" + processId + "] Mensaje: " + message);
 
-                message = "[" + dateString + "]" + message;
+                // Modifica el formato del mensaje enviado al Sistema de Calidad
+                message = "[" + dateString + "] [" + processId + "]" + message;
 
-                // Escribe el mensaje en el archivo
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter("reporte.txt", true))) {
                     writer.write(message);
-                    writer.newLine(); // Agrega una nueva línea para separar los mensajes
-                    writer.flush(); // Asegura que los datos se escriban en el archivo
+                    writer.newLine();
+                    writer.flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                // Verifica si el mensaje indica un error y envía al Sistema de Calidad
                 if (message.contains("Errores")) {
-                    // Envía mensaje al Sistema de Calidad
-                    String systemQualityMessage = "[" + dateString + "] Error en el monitor de " + sensorType +
-                            " con valor: " + parseErrorValue(message);
+                    String systemQualityMessage = "[" + dateString + "] [" + processId + "] Error en el monitor de " +
+                            sensorType + " con valor: " + parseErrorValue(message);
                     systemQualityPublisher.send(systemQualityMessage);
                 }
             }
@@ -62,12 +61,12 @@ public class Monitor {
     }
 
     private static String parseErrorValue(String errorMessage) {
-        // Realiza el análisis del mensaje de error para extraer el valor
         String[] parts = errorMessage.split(" ");
-        if (parts.length >= 10) {
-            return parts[9];
-        } else {
-            return "Valor Desconocido";
+
+        for(int i = 0; i < parts.length; i++) {
+            System.out.println("Parte " + i);
+            System.out.println(parts[i]);
         }
+        return parts[8];
     }
 }
