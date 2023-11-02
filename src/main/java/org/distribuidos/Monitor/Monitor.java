@@ -1,36 +1,72 @@
 package org.distribuidos.Monitor;
 
-
-
-import java.io.ObjectInputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-import org.zeromq.ZMQ;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.zeromq.ZMQ;
 
 public class Monitor {
     public static void main(String[] args) {
+        if (args.length != 1) {
+            System.out.println("Debe proporcionar el tipo de sensor como argumento.");
+            return;
+        }
+
         String sensorType = args[0];
 
-        try (ZMQ.Context context = ZMQ.context(1);
-             ZMQ.Socket subscriber = context.socket(ZMQ.SUB)) {
+        // Obtén el ID del proceso (PID)
+        String processId = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
 
-            // Cambia la conexión al canal de suscripción para que sea la dirección IP de la computadora que ejecuta el programa 'Sensor'.
-            subscriber.connect("tcp://192.168.0.10:5556");
+        try (ZMQ.Context context = ZMQ.context(1);
+             ZMQ.Socket subscriber = context.socket(ZMQ.SUB);
+             ZMQ.Socket systemQualityPublisher = context.socket(ZMQ.PUB)) {
+
+            subscriber.connect("tcp://192.168.0.12:5556");
             subscriber.subscribe(sensorType.getBytes());
 
-            while (true) {
-                // Recibe el mensaje de saludo del canal de suscripción
-                String message = subscriber.recvStr();
-                System.out.println("Mensaje: " + message);
+            systemQualityPublisher.bind("tcp://*:5557");
 
-                // Implementa la lógica para validar y almacenar la medición
-                // ...
+            while (true) {
+                String message = subscriber.recvStr();
+                Date date = new Date();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                String dateString = dateFormat.format(date);
+
+                System.out.println("[" + dateString + "] [" + processId + "] Mensaje: " + message);
+
+                // Modifica el formato del mensaje enviado al Sistema de Calidad
+                message = "[" + dateString + "] [" + processId + "]" + message;
+
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter("reporte.txt", true))) {
+                    writer.write(message);
+                    writer.newLine();
+                    writer.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                if (message.contains("Errores")) {
+                    String systemQualityMessage = "[" + dateString + "] [" + processId + "] Error en el monitor de " +
+                            sensorType + " con valor: " + parseErrorValue(message);
+                    systemQualityPublisher.send(systemQualityMessage);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static String parseErrorValue(String errorMessage) {
+        String[] parts = errorMessage.split(" ");
+
+        for(int i = 0; i < parts.length; i++) {
+            System.out.println("Parte " + i);
+            System.out.println(parts[i]);
+        }
+        return parts[8];
     }
 }
