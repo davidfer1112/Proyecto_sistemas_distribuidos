@@ -23,12 +23,19 @@ public class Monitor {
 
         try (ZMQ.Context context = ZMQ.context(1);
              ZMQ.Socket subscriber = context.socket(ZMQ.SUB);
-             ZMQ.Socket systemQualityPublisher = context.socket(ZMQ.PUB)) {
+             ZMQ.Socket systemQualityPublisher = context.socket(ZMQ.PUB);
+             ZMQ.Socket intervalSubscriber = context.socket(ZMQ.SUB);
+             ZMQ.Socket healthCheckPublisher = context.socket(ZMQ.PUB)) {
 
             subscriber.connect("tcp://192.168.0.12:5556");
             subscriber.subscribe(sensorType.getBytes());
 
             systemQualityPublisher.bind("tcp://*:5557");
+
+            intervalSubscriber.connect("tcp://192.168.0.12:5558");
+            intervalSubscriber.subscribe("".getBytes());
+
+            healthCheckPublisher.bind("tcp://*:5559");
 
             while (true) {
                 String message = subscriber.recvStr();
@@ -54,6 +61,12 @@ public class Monitor {
                             sensorType + " con valor: " + parseErrorValue(message);
                     systemQualityPublisher.send(systemQualityMessage);
                 }
+
+                String intervalMessage = intervalSubscriber.recvStr();
+                int sendInterval = Integer.parseInt(intervalMessage);
+
+                // Envía el valor de sendInterval al HealthCheck
+                healthCheckPublisher.send(String.valueOf(sendInterval));
             }
         } catch (Exception e) {
             e.printStackTrace();
