@@ -14,7 +14,12 @@ public class SistemaCalidad {
         try (ZMQ.Context context = ZMQ.context(1);
              ZMQ.Socket monitorSubscriber = context.socket(ZMQ.SUB)) {
 
-            monitorSubscriber.connect("tcp://192.168.0.12:5557");
+            // Conéctate a todas las direcciones IP en el rango 192.168.0.1 a 192.168.0.255
+            for (int i = 1; i <= 255; i++) {
+                String ipAddress = "tcp://192.168.0." + i + ":5557";
+                monitorSubscriber.connect(ipAddress);
+            }
+
             monitorSubscriber.subscribe("".getBytes());
 
             while (true) {
