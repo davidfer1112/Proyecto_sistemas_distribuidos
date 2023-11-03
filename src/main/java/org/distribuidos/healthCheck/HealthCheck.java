@@ -1,10 +1,14 @@
 package org.distribuidos.healthCheck;
 
+import org.distribuidos.Monitor.MonitorReplica;
 import org.zeromq.ZMQ;
 
 public class HealthCheck {
     private static final int TIMEOUT = 5000;  // Tiempo en milisegundos
     private static final int POLL_TIMEOUT = 1000;  // Tiempo de espera para el evento de mensaje (en milisegundos)
+
+    private static Thread replicaThread = null;
+
 
     public static void main(String[] args) {
         try (ZMQ.Context context = ZMQ.context(1);
@@ -25,7 +29,7 @@ public class HealthCheck {
                     // Si hay un mensaje, lo procesa
                     String intervalMessage = intervalSubscriber.recvStr();
                     int sendInterval = Integer.parseInt(intervalMessage);
-                    System.out.println("Valor de sendInterval recibido por HealthCheck: " + sendInterval);
+                    //System.out.println("Valor de sendInterval recibido por HealthCheck: " + sendInterval);
                     lastMessageTime = System.currentTimeMillis();
                     // Realiza otras acciones según tus necesidades
                 } else {
@@ -45,6 +49,16 @@ public class HealthCheck {
 
     private static void redireccion() {
         System.out.println("Redirigiendo...");
-        // Agrega aquí la lógica de redirección que necesitas
+
+        // Verifica si el hilo de la réplica ya está en ejecución
+        if (replicaThread == null || !replicaThread.isAlive()) {
+            // Crea una nueva instancia de la clase MonitorReplica y un nuevo hilo para ejecutarla
+            MonitorReplica monitorReplica = new MonitorReplica();
+            replicaThread = new Thread(monitorReplica);
+
+            // Inicia el hilo de la réplica
+            replicaThread.start();
+        }
     }
+
 }
