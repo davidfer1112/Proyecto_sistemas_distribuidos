@@ -9,15 +9,10 @@ import java.util.Date;
 
 import org.zeromq.ZMQ;
 
-public class Monitor {
-    public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Debe proporcionar el tipo de sensor como argumento.");
-            return;
-        }
+public class MonitorReplica implements Runnable {
 
-        String sensorType = args[0];
-
+    @Override
+    public void run() {
         // Obtén el ID del proceso (PID)
         String processId = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
 
@@ -28,7 +23,8 @@ public class Monitor {
              ZMQ.Socket healthCheckPublisher = context.socket(ZMQ.PUB)) {
 
             subscriber.connect("tcp://192.168.0.12:5556");
-            subscriber.subscribe(sensorType.getBytes());
+            // Puedes personalizar el tipo de sensor según tus necesidades
+            subscriber.subscribe("".getBytes());
 
             systemQualityPublisher.bind("tcp://*:5557");
 
@@ -43,7 +39,7 @@ public class Monitor {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
                 String dateString = dateFormat.format(date);
 
-                System.out.println("[" + dateString + "] [" + processId + "] Mensaje: " + message);
+                System.out.println("[" + dateString + "] [" + processId + "] Réplica - Mensaje: " + message);
 
                 // Modifica el formato del mensaje enviado al Sistema de Calidad
                 message = "[" + dateString + "] [" + processId + "]" + message;
@@ -57,8 +53,7 @@ public class Monitor {
                 }
 
                 if (message.contains("Errores")) {
-                    String systemQualityMessage = "[" + dateString + "] [" + processId + "] Error en el monitor de " +
-                            sensorType + " con valor: " + parseErrorValue(message);
+                    String systemQualityMessage = "[" + dateString + "] [" + processId + "] Error en el monitor de réplica con valor: " + parseErrorValue(message);
                     systemQualityPublisher.send(systemQualityMessage);
                 }
 
