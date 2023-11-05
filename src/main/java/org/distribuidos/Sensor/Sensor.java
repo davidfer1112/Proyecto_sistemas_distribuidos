@@ -68,12 +68,12 @@ public class Sensor {
             e.printStackTrace();
         }
 
-        // Resto del código del programa
         try (ZMQ.Context context = ZMQ.context(1);
-             ZMQ.Socket publisher = context.socket(ZMQ.PUB)) {
+             ZMQ.Socket publisher = context.socket(ZMQ.PUB);
+             ZMQ.Socket intervalPublisher = context.socket(ZMQ.PUB)) {
 
-            // Cambia la conexión al canal de publicación para que sea una dirección IP accesible en tu red.
             publisher.bind("tcp://*:5556");
+            intervalPublisher.bind("tcp://*:5558");
 
 
 
@@ -147,6 +147,8 @@ public class Sensor {
 
                 // Envía el mensaje
                 publisher.send(message);
+
+                intervalPublisher.send(String.valueOf(sendInterval));
 
                 // Espera antes de enviar el siguiente mensaje
                 Thread.sleep(sendInterval);
